@@ -9,6 +9,7 @@ bool Cache::accessMemory(int address) {
         // Hit
         hits++;
         if (policy == LRU) {
+            // Move this block to the end of the access order
             accessOrder.erase(std::remove(accessOrder.begin(), accessOrder.end(), blockAddress), accessOrder.end());
             accessOrder.push_back(blockAddress);
         }
@@ -24,7 +25,10 @@ bool Cache::accessMemory(int address) {
 void Cache::replace(int address) {
     if (cache.size() >= size / blockSize) {
         int evictAddress;
-        if (policy == FIFO || policy == LRU) {
+        if (policy == FIFO) {
+            evictAddress = accessOrder.front();
+            accessOrder.pop_front();
+        } else if (policy == LRU) {
             evictAddress = accessOrder.front();
             accessOrder.pop_front();
         } else if (policy == RR) {
