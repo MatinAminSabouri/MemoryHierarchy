@@ -9,7 +9,6 @@ bool Cache::accessMemory(int address) {
         // Hit
         hits++;
         if (policy == LRU) {
-            // Move this block to the end of the access order
             accessOrder.erase(std::remove(accessOrder.begin(), accessOrder.end(), blockAddress), accessOrder.end());
             accessOrder.push_back(blockAddress);
         }
@@ -40,11 +39,39 @@ void Cache::replace(int address) {
     accessOrder.push_back(address);
 }
 
-MemoryHierarchy::MemoryHierarchy(int l1Size, int l2Size, int l3Size, int blockSize)
-    : l1Cache(l1Size, blockSize, Cache::LRU), l2Cache(l2Size, blockSize, Cache::FIFO), l3Cache(l3Size, blockSize, Cache::RR) {}
+MemoryHierarchy::MemoryHierarchy(int l1Size, int l2Size, int l3Size, int blockSize, Cache::ReplacementPolicy policy)
+    : l1Cache(l1Size, blockSize, policy), l2Cache(l2Size, blockSize, policy), l3Cache(l3Size, blockSize, policy) {}
 
 bool MemoryHierarchy::accessMemory(int address) {
-    if (l1Cache.accessMemory(address)) return true;
-    if (l2Cache.accessMemory(address)) return true;
-    return l3Cache.accessMemory(address);
+    auto start = std::chrono::high_resolution_clock::now();
+
+    if (l1Cache.accessMemory(address)) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        totalAccessTime += elapsed.count();
+        numAccesses++;
+        return true;
+    }
+
+    if (l2Cache.accessMemory(address)) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        totalAccessTime += elapsed.count();
+        numAccesses++;
+        return true;
+    }
+
+    if (l3Cache.accessMemory(address)) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        totalAccessTime += elapsed.count();
+        numAccesses++;
+        return true;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::micro> elapsed = end - start;
+    totalAccessTime += elapsed.count();
+    numAccesses++;
+    return false;
 }

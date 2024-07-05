@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <deque>
 #include <algorithm>
+#include <chrono>
 
 class Cache {
 public:
@@ -34,7 +35,7 @@ private:
 
 class MemoryHierarchy {
 public:
-    MemoryHierarchy(int l1Size, int l2Size, int l3Size, int blockSize);
+    MemoryHierarchy(int l1Size, int l2Size, int l3Size, int blockSize, Cache::ReplacementPolicy policy);
     bool accessMemory(int address);
 
     int getL1Hits() const { return l1Cache.getHits(); }
@@ -44,10 +45,17 @@ public:
     int getL3Hits() const { return l3Cache.getHits(); }
     int getL3Misses() const { return l3Cache.getMisses(); }
 
+    double getAverageAccessTime() const { return totalAccessTime / numAccesses; }
+    double getL1HitRate() const { return static_cast<double>(l1Cache.getHits()) / numAccesses; }
+    double getL2HitRate() const { return static_cast<double>(l2Cache.getHits()) / numAccesses; }
+    double getL3HitRate() const { return static_cast<double>(l3Cache.getHits()) / numAccesses; }
+
 private:
     Cache l1Cache;
     Cache l2Cache;
     Cache l3Cache;
+    double totalAccessTime = 0;
+    int numAccesses = 0;
 };
 
 #endif // MEMORYHIERARCHY_H
